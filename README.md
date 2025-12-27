@@ -164,17 +164,31 @@ http://localhost:3000
 
 ## API Endpoints
 
-### Get Initial Data (Sectors and Families)
+### Get Filter Options
 ```
-GET /api?level=initial
+GET /api?level=filters&internalAudit=Assurance (optional)
 ```
 
 Response:
 ```json
 {
-  "sectors": [
+  "internalAuditTypes": ["Assurance", "Advisory", "Investigation"],
+  "sectors": ["Non-IT", "IT", "Financial"]
+}
+```
+
+### Get Initial Data (Families with Filters)
+```
+GET /api?level=initial&internalAudit=Assurance&sector=Non-IT (filters optional)
+```
+
+Response:
+```json
+{
+  "data": [
     {
-      "name": "Non-IT",
+      "internalAudit": "Assurance",
+      "sector": "Non-IT",
       "families": ["Compliance Audit", "Financial Audit", ...]
     }
   ]
@@ -183,12 +197,13 @@ Response:
 
 ### Get Categories for a Family
 ```
-GET /api?level=categories&sector=Non-IT&family=Compliance+Audit
+GET /api?level=categories&internalAudit=Assurance&sector=Non-IT&family=Compliance+Audit
 ```
 
 Response:
 ```json
 {
+  "internalAudit": "Assurance",
   "sector": "Non-IT",
   "family": "Compliance Audit",
   "categories": ["Legal Compliance", "Regulatory Compliance", ...]
@@ -197,18 +212,19 @@ Response:
 
 ### Get Types for a Category
 ```
-GET /api?level=types&sector=Non-IT&family=Compliance+Audit&category=Legal+Compliance
+GET /api?level=types&internalAudit=Assurance&sector=Non-IT&family=Compliance+Audit&category=Corporate+Compliance
 ```
 
 Response:
 ```json
 {
+  "internalAudit": "Assurance",
   "sector": "Non-IT",
   "family": "Compliance Audit",
-  "category": "Legal Compliance",
+  "category": "Corporate Compliance",
   "types": [
     {
-      "type": "Anti-Money Laundering Compliance",
+      "type": "Corporate Governance Compliance",
       "description": "...",
       "whenToUse": "...",
       "framework": "..."
