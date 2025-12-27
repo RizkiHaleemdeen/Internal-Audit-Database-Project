@@ -4,8 +4,14 @@ from sqlalchemy import create_engine, text
 
 st.set_page_config(page_title="Internal Audit Dashboard", layout="wide")
 
-# Database connection
-engine = create_engine(st.secrets["DB_URL"])
+db_url = st.secrets["DB_URL"]
+
+st.write("DB URL being used:", db_url)  # TEMP
+
+engine = create_engine(
+    db_url,
+    connect_args={"sslmode": "require"}
+)
 # engine = create_engine("postgresql://postgres:internal-audit-db@db.vieawzynjplornfzwtwv.supabase.co:6543/postgres?sslmode=require")
 # engine = create_engine("postgresql://postgres:internal-audit-db@db.vieawzynjplornfzwtwv.supabase.co:5432/postgres")
 
