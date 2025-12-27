@@ -69,6 +69,7 @@ framework_or_criteria: "Corporate Governance Frameworks, GRC Guidelines"
 ```sql
 CREATE TABLE audit_types (
   id SERIAL PRIMARY KEY,
+  internal_audit TEXT NOT NULL,
   sector TEXT NOT NULL,
   family TEXT NOT NULL,
   category TEXT NOT NULL,
@@ -88,6 +89,7 @@ ON audit_types FOR SELECT
 USING (true);
 
 -- Create indexes for better query performance
+CREATE INDEX idx_audit_internal_audit ON audit_types(internal_audit);
 CREATE INDEX idx_audit_sector ON audit_types(sector);
 CREATE INDEX idx_audit_family ON audit_types(family);
 CREATE INDEX idx_audit_category ON audit_types(category);
