@@ -275,7 +275,7 @@ def run_all_tests():
     print("\n" + "="*80)
     print("TEST 7: ERROR HANDLING")
     print("="*80)
-    test_results['error_handling'] = test_error_handling()
+    test_results['error_handling'] = (test_error_handling(), None)
     
     # Summary
     print("\n" + "="*80)
