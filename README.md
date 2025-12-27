@@ -25,30 +25,44 @@ A beautiful, interactive web application for exploring Internal Audit taxonomy h
 
 ## Database Structure
 
-The application connects to Supabase and reads from a table with the following structure:
+The application connects to Supabase and reads from a table with the following **5-level hierarchy**:
 
 ### Table Name: `audit_types`
 
 ### Required Columns:
-| Column Name | Data Type | Description |
-|------------|-----------|-------------|
-| `sector` | TEXT | Top-level audit sector (e.g., "Non-IT") |
-| `family` | TEXT | Audit family within the sector |
-| `category` | TEXT | Specific audit category |
-| `type_of_audit` | TEXT | Specific type of audit |
-| `description` | TEXT | Detailed description of the audit type |
-| `when_to_use` | TEXT | Guidance on when to use this audit type |
-| `framework_or_criteria` | TEXT | Applicable framework or criteria |
+| Column Name | Data Type | Hierarchy Level | Description |
+|------------|-----------|-----------------|-------------|
+| `internal_audit` | TEXT | **Level 1** | Top-level audit type (e.g., "Assurance", "Advisory", "Investigation") |
+| `sector` | TEXT | **Level 2** | Audit sector (e.g., "Non-IT", "IT", "Financial") |
+| `family` | TEXT | **Level 3** | Audit family within the sector (e.g., "Compliance Audit") |
+| `category` | TEXT | **Level 4** | Specific audit category (e.g., "Corporate Compliance") |
+| `type_of_audit` | TEXT | **Level 5** | Specific type of audit (e.g., "Corporate Governance Compliance") |
+| `description` | TEXT | - | Detailed description of the audit type |
+| `when_to_use` | TEXT | - | Guidance on when to use this audit type |
+| `framework_or_criteria` | TEXT | - | Applicable framework or criteria |
+
+### Hierarchy Flow:
+```
+1. internal_audit (Assurance, Advisory, etc.)
+   └── 2. sector (Non-IT, IT, etc.)
+       └── 3. family (Compliance Audit, Financial Audit, etc.)
+           └── 4. category (Corporate Compliance, etc.)
+               └── 5. type_of_audit (Corporate Governance Compliance, etc.)
+                   ├── description
+                   ├── when_to_use
+                   └── framework_or_criteria
+```
 
 ### Example Data Row:
 ```
+internal_audit: "Assurance"
 sector: "Non-IT"
 family: "Compliance Audit"
-category: "Legal and Regulatory Compliance"
-type_of_audit: "Anti-Money Laundering (AML) Compliance"
-description: "Evaluates adherence to AML regulations..."
-when_to_use: "When assessing AML controls..."
-framework_or_criteria: "FATF Recommendations, Local AML Laws"
+category: "Corporate Compliance"
+type_of_audit: "Corporate Governance Compliance"
+description: "Evaluates adherence to corporate governance regulations..."
+when_to_use: "When assessing corporate governance controls..."
+framework_or_criteria: "Corporate Governance Frameworks, GRC Guidelines"
 ```
 
 ### SQL to Create Table:
