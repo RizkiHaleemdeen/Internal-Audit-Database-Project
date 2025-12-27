@@ -219,14 +219,16 @@ Response:
 
 ## User Interface
 
-### Landing Page
-- Displays all Sectors with their Families
+### Landing Page - NEW Filter System
+- **Type of Audit Filter**: Buttons to select audit type (e.g., "Assurance", "Advisory")
+- **Sector Filter**: Buttons to filter by sector (e.g., "Non-IT", "IT", "All Sectors")
+- Displays all Families grouped by Sector based on selected filters
 - Family cards are clickable
 - Color-coded with blue gradient
 
 ### Family → Category View
 - Shows all Categories under selected Family
-- Breadcrumb navigation at top
+- Breadcrumb navigation at top shows: Type → Sector → Family
 - Back button to return to previous view
 - Teal color scheme
 
