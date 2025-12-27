@@ -5,8 +5,8 @@ from sqlalchemy import create_engine, text
 st.set_page_config(page_title="Internal Audit Dashboard", layout="wide")
 
 # Database connection
-# engine = create_engine(st.secrets["DB_URL"])
-engine = create_engine("postgresql+psycopg2://audit_user:secret@localhost:5432/audit_db")
+engine = create_engine(st.secrets["DB_URL"])
+# engine = create_engine("postgresql+psycopg2://audit_user:secret@localhost:5432/audit_db")
 
 @st.cache_data
 def load_full_table():
