@@ -1,10 +1,11 @@
 import { NextResponse } from 'next/server'
-import { fetchAuditData, organizeHierarchy } from '../../../lib/supabase.js'
+import { fetchAuditData, organizeHierarchy, getUniqueInternalAuditTypes, getUniqueSectors } from '../../../lib/supabase.js'
 
 export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url)
     const level = searchParams.get('level')
+    const internalAudit = searchParams.get('internalAudit')
     const sector = searchParams.get('sector')
     const family = searchParams.get('family')
     const category = searchParams.get('category')
@@ -16,35 +17,56 @@ export async function GET(request) {
       return NextResponse.json({ error: 'No data found in database' }, { status: 404 })
     }
 
-    // Organize into hierarchy
-    const hierarchy = organizeHierarchy(rawData)
+    // Return filter options
+    if (level === 'filters') {
+      const internalAuditTypes = getUniqueInternalAuditTypes(rawData)
+      const sectors = getUniqueSectors(rawData, internalAudit)
+      return NextResponse.json({ 
+        internalAuditTypes,
+        sectors 
+      })
+    }
+
+    // Organize into hierarchy with filters
+    const hierarchy = organizeHierarchy(rawData, internalAudit, sector)
 
     // Return different data based on query parameters
     if (level === 'initial') {
-      // Return sectors and families for initial view
-      const sectors = Object.keys(hierarchy).map(sectorName => ({
-        name: sectorName,
-        families: Object.keys(hierarchy[sectorName])
-      }))
-      return NextResponse.json({ sectors })
+      // Return families grouped by sector (with optional filters)
+      const result = []
+      
+      Object.keys(hierarchy).forEach(auditType => {
+        Object.keys(hierarchy[auditType]).forEach(sectorName => {
+          const families = Object.keys(hierarchy[auditType][sectorName])
+          result.push({
+            internalAudit: auditType,
+            sector: sectorName,
+            families: families
+          })
+        })
+      })
+      
+      return NextResponse.json({ data: result })
     }
 
-    if (level === 'categories' && sector && family) {
+    if (level === 'categories' && internalAudit && sector && family) {
       // Return categories for a specific family
-      const categories = hierarchy[sector]?.[family] 
-        ? Object.keys(hierarchy[sector][family])
+      const categories = hierarchy[internalAudit]?.[sector]?.[family] 
+        ? Object.keys(hierarchy[internalAudit][sector][family])
         : []
       return NextResponse.json({ 
+        internalAudit,
         sector, 
         family, 
         categories 
       })
     }
 
-    if (level === 'types' && sector && family && category) {
+    if (level === 'types' && internalAudit && sector && family && category) {
       // Return types for a specific category
-      const types = hierarchy[sector]?.[family]?.[category] || []
+      const types = hierarchy[internalAudit]?.[sector]?.[family]?.[category] || []
       return NextResponse.json({ 
+        internalAudit,
         sector, 
         family, 
         category, 

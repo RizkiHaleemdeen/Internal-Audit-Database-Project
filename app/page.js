@@ -3,12 +3,18 @@
 import { useState, useEffect } from 'react'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { ChevronRight, Home, X, Loader2, AlertCircle } from 'lucide-react'
+import { ChevronRight, Home, X, Loader2, AlertCircle, Filter } from 'lucide-react'
 
 export default function AuditTreeExplorer() {
+  // Filter states
+  const [internalAuditTypes, setInternalAuditTypes] = useState([])
   const [sectors, setSectors] = useState([])
-  const [currentView, setCurrentView] = useState('initial') // initial, categories, types
+  const [selectedInternalAudit, setSelectedInternalAudit] = useState(null)
   const [selectedSector, setSelectedSector] = useState(null)
+  
+  // Data states
+  const [groupedFamilies, setGroupedFamilies] = useState([])
+  const [currentView, setCurrentView] = useState('initial') // initial, categories, types
   const [selectedFamily, setSelectedFamily] = useState(null)
   const [selectedCategory, setSelectedCategory] = useState(null)
   const [categories, setCategories] = useState([])
@@ -17,20 +23,61 @@ export default function AuditTreeExplorer() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
-  // Fetch initial data
+  // Fetch filter options on mount
   useEffect(() => {
-    fetchInitialData()
+    fetchFilterOptions()
   }, [])
+
+  // Fetch families when filters change
+  useEffect(() => {
+    if (internalAuditTypes.length > 0) {
+      fetchInitialData()
+    }
+  }, [selectedInternalAudit, selectedSector])
+
+  const fetchFilterOptions = async () => {
+    try {
+      setLoading(true)
+      setError(null)
+      const response = await fetch('/api?level=filters')
+      if (!response.ok) throw new Error('Failed to fetch filter options')
+      const data = await response.json()
+      if (data.error) throw new Error(data.error)
+      
+      setInternalAuditTypes(data.internalAuditTypes || [])
+      setSectors(data.sectors || [])
+      
+      // Set default selection to first internal audit type
+      if (data.internalAuditTypes && data.internalAuditTypes.length > 0) {
+        setSelectedInternalAudit(data.internalAuditTypes[0])
+      }
+    } catch (err) {
+      console.error('Error fetching filter options:', err)
+      setError(err.message)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const fetchInitialData = async () => {
     try {
       setLoading(true)
       setError(null)
-      const response = await fetch('/api?level=initial')
+      
+      let url = '/api?level=initial'
+      if (selectedInternalAudit) {
+        url += `&internalAudit=${encodeURIComponent(selectedInternalAudit)}`
+      }
+      if (selectedSector) {
+        url += `&sector=${encodeURIComponent(selectedSector)}`
+      }
+      
+      const response = await fetch(url)
       if (!response.ok) throw new Error('Failed to fetch data')
-      const data = await response.json()
-      if (data.error) throw new Error(data.error)
-      setSectors(data.sectors || [])
+      const result = await response.json()
+      if (result.error) throw new Error(result.error)
+      
+      setGroupedFamilies(result.data || [])
     } catch (err) {
       console.error('Error fetching initial data:', err)
       setError(err.message)
@@ -39,15 +86,18 @@ export default function AuditTreeExplorer() {
     }
   }
 
-  const handleFamilyClick = async (sector, family) => {
+  const handleFamilyClick = async (internalAudit, sector, family) => {
     try {
       setLoading(true)
       setError(null)
-      const response = await fetch(`/api?level=categories&sector=${encodeURIComponent(sector)}&family=${encodeURIComponent(family)}`)
+      const response = await fetch(
+        `/api?level=categories&internalAudit=${encodeURIComponent(internalAudit)}&sector=${encodeURIComponent(sector)}&family=${encodeURIComponent(family)}`
+      )
       if (!response.ok) throw new Error('Failed to fetch categories')
       const data = await response.json()
       if (data.error) throw new Error(data.error)
       
+      setSelectedInternalAudit(internalAudit)
       setSelectedSector(sector)
       setSelectedFamily(family)
       setCategories(data.categories || [])
@@ -65,7 +115,7 @@ export default function AuditTreeExplorer() {
       setLoading(true)
       setError(null)
       const response = await fetch(
-        `/api?level=types&sector=${encodeURIComponent(selectedSector)}&family=${encodeURIComponent(selectedFamily)}&category=${encodeURIComponent(category)}`
+        `/api?level=types&internalAudit=${encodeURIComponent(selectedInternalAudit)}&sector=${encodeURIComponent(selectedSector)}&family=${encodeURIComponent(selectedFamily)}&category=${encodeURIComponent(category)}`
       )
       if (!response.ok) throw new Error('Failed to fetch types')
       const data = await response.json()
@@ -93,7 +143,6 @@ export default function AuditTreeExplorer() {
       setTypes([])
     } else if (currentView === 'categories') {
       setCurrentView('initial')
-      setSelectedSector(null)
       setSelectedFamily(null)
       setCategories([])
     }
@@ -101,11 +150,21 @@ export default function AuditTreeExplorer() {
 
   const handleHome = () => {
     setCurrentView('initial')
-    setSelectedSector(null)
     setSelectedFamily(null)
     setSelectedCategory(null)
     setCategories([])
     setTypes([])
+  }
+
+  const handleInternalAuditFilter = (type) => {
+    setSelectedInternalAudit(type === selectedInternalAudit ? null : type)
+    setSelectedSector(null) // Reset sector when changing internal audit type
+    setCurrentView('initial')
+  }
+
+  const handleSectorFilter = (sector) => {
+    setSelectedSector(sector === selectedSector ? null : sector)
+    setCurrentView('initial')
   }
 
   // Breadcrumb component
@@ -116,7 +175,7 @@ export default function AuditTreeExplorer() {
         className="flex items-center gap-1 text-slate-600 hover:text-blue-600 transition-colors"
       >
         <Home className="w-4 h-4" />
-        <span className="font-medium">Internal Audit</span>
+        <span className="font-medium">{selectedInternalAudit || 'Internal Audit'}</span>
       </button>
       {selectedSector && (
         <>
@@ -140,7 +199,7 @@ export default function AuditTreeExplorer() {
   )
 
   // Loading state
-  if (loading && currentView === 'initial') {
+  if (loading && internalAuditTypes.length === 0) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center">
         <div className="text-center">
@@ -152,7 +211,7 @@ export default function AuditTreeExplorer() {
   }
 
   // Error state
-  if (error && currentView === 'initial') {
+  if (error && internalAuditTypes.length === 0) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center p-4">
         <Card className="max-w-md w-full p-6">
@@ -161,7 +220,7 @@ export default function AuditTreeExplorer() {
             <div>
               <h3 className="font-semibold text-lg mb-2">Error Loading Data</h3>
               <p className="text-slate-600 mb-4">{error}</p>
-              <Button onClick={fetchInitialData}>Try Again</Button>
+              <Button onClick={fetchFilterOptions}>Try Again</Button>
             </div>
           </div>
         </Card>
@@ -178,6 +237,62 @@ export default function AuditTreeExplorer() {
           <p className="text-slate-600">Navigate through the audit taxonomy hierarchy</p>
         </div>
 
+        {/* Filter Section - Only show on initial view */}
+        {currentView === 'initial' && (
+          <div className="mb-8 space-y-6">
+            {/* Internal Audit Type Filter */}
+            <div>
+              <div className="flex items-center gap-2 mb-3">
+                <Filter className="w-5 h-5 text-slate-600" />
+                <h3 className="font-semibold text-lg text-slate-800">Type of Audit</h3>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {internalAuditTypes.map((type, idx) => (
+                  <Button
+                    key={idx}
+                    onClick={() => handleInternalAuditFilter(type)}
+                    variant={selectedInternalAudit === type ? 'default' : 'outline'}
+                    className="transition-all"
+                  >
+                    {type}
+                  </Button>
+                ))}
+              </div>
+            </div>
+
+            {/* Sector Filter */}
+            {selectedInternalAudit && sectors.length > 0 && (
+              <div>
+                <div className="flex items-center gap-2 mb-3">
+                  <Filter className="w-5 h-5 text-slate-600" />
+                  <h3 className="font-semibold text-lg text-slate-800">Sector</h3>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    onClick={() => handleSectorFilter(null)}
+                    variant={!selectedSector ? 'default' : 'outline'}
+                    className="transition-all"
+                  >
+                    All Sectors
+                  </Button>
+                  {sectors.map((sector, idx) => (
+                    <Button
+                      key={idx}
+                      onClick={() => handleSectorFilter(sector)}
+                      variant={selectedSector === sector ? 'default' : 'outline'}
+                      className="transition-all"
+                    >
+                      {sector}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div className="border-t pt-6"></div>
+          </div>
+        )}
+
         {/* Breadcrumb */}
         {currentView !== 'initial' && <Breadcrumb />}
 
@@ -193,16 +308,23 @@ export default function AuditTreeExplorer() {
         )}
 
         {/* Loading overlay for transitions */}
-        {loading && currentView !== 'initial' && (
+        {loading && internalAuditTypes.length > 0 && (
           <div className="flex items-center justify-center py-12">
             <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
           </div>
         )}
 
-        {/* Initial View: Sectors and Families */}
+        {/* Initial View: Families grouped by Sector */}
         {!loading && currentView === 'initial' && (
           <div className="space-y-8">
-            {sectors.map((sector, idx) => (
+            {groupedFamilies.length === 0 && (
+              <div className="text-center py-12">
+                <p className="text-slate-600 text-lg">No audit families found for the selected filters.</p>
+                <p className="text-slate-500 mt-2">Try selecting different filter options.</p>
+              </div>
+            )}
+            
+            {groupedFamilies.map((group, idx) => (
               <div
                 key={idx}
                 className="animate-fadeIn"
@@ -210,17 +332,17 @@ export default function AuditTreeExplorer() {
               >
                 {/* Sector Header */}
                 <div className="mb-4">
-                  <h2 className="text-2xl font-bold text-slate-800 mb-1">{sector.name}</h2>
+                  <h2 className="text-2xl font-bold text-slate-800 mb-1">{group.sector}</h2>
                   <div className="h-1 w-20 bg-gradient-to-r from-blue-600 to-blue-400 rounded"></div>
                 </div>
 
                 {/* Families Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                  {sector.families.map((family, familyIdx) => (
+                  {group.families.map((family, familyIdx) => (
                     <Card
                       key={familyIdx}
                       className="p-6 hover:shadow-xl transition-all duration-300 cursor-pointer group hover:scale-105 bg-gradient-to-br from-blue-50 to-white border-2 border-blue-100 hover:border-blue-300"
-                      onClick={() => handleFamilyClick(sector.name, family)}
+                      onClick={() => handleFamilyClick(group.internalAudit, group.sector, family)}
                     >
                       <div className="flex items-center justify-between">
                         <h3 className="font-semibold text-lg text-slate-800 group-hover:text-blue-600 transition-colors">
