@@ -5,9 +5,9 @@ from sqlalchemy import create_engine, text
 st.set_page_config(page_title="Internal Audit Dashboard", layout="wide")
 
 # Database connection
-# engine = create_engine(st.secrets["DB_URL"])
+engine = create_engine(st.secrets["DB_URL"])
 # engine = create_engine("postgresql://postgres:internal-audit-db@db.vieawzynjplornfzwtwv.supabase.co:6543/postgres?sslmode=require")
-engine = create_engine("postgresql://postgres:internal-audit-db@db.vieawzynjplornfzwtwv.supabase.co:5432/postgres")
+# engine = create_engine("postgresql://postgres:internal-audit-db@db.vieawzynjplornfzwtwv.supabase.co:5432/postgres")
 
 @st.cache_data
 def load_full_table():
