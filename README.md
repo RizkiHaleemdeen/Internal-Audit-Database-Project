@@ -99,13 +99,23 @@ CREATE INDEX idx_audit_category ON audit_types(category);
 
 ### 1. Environment Variables
 
-The application requires the following environment variables (already configured in `.env`):
+The application requires the following environment variables in your `.env` file:
 
 ```env
-NEXT_PUBLIC_SUPABASE_URL=https://vieawzynjplornfzwtwv.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=sb_publishable_q4kWFEtOn69qVWqfOc55Uw_vh3zqrIy
+# Base URL for the application
+NEXT_PUBLIC_BASE_URL=http://localhost:3000
+
+# Supabase Configuration (replace with your project credentials)
+NEXT_PUBLIC_SUPABASE_URL=your-supabase-project-url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
 SUPABASE_TABLE_NAME=audit_types
 ```
+
+**Where to find your Supabase credentials:**
+1. Go to your Supabase project dashboard
+2. Navigate to **Settings → API**
+3. Copy your **Project URL** and **anon/public key**
+4. Update the `.env` file with your actual credentials
 
 ### 2. Supabase Setup
 
