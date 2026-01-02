@@ -320,9 +320,17 @@ Response:
 
 - Server-side rendering for initial page load
 - Client-side navigation for smooth transitions
-- Optimized API queries (fetch only what's needed)
+- Optimized API queries with reasonable limits (max 5,000 records per query)
+- Fetch only what's needed based on user selection
 - Responsive images and assets
 - Smooth 60fps animations
+- Efficient data caching and organization
+
+**Note:** The application is optimized to handle up to 5,000 audit records. If you need to manage larger datasets, consider implementing:
+- Server-side pagination
+- Virtual scrolling for long lists
+- More aggressive filtering options
+- Database indexing on frequently queried columns
 
 ## Accessibility
 
