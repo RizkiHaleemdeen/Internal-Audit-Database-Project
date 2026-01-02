@@ -119,11 +119,20 @@ SUPABASE_TABLE_NAME=audit_types
 
 ### 2. Supabase Setup
 
-1. Go to your Supabase project: https://vieawzynjplornfzwtwv.supabase.co
-2. Navigate to SQL Editor
-3. Run the SQL script above to create the `audit_types` table
-4. Import your audit data into the table
-5. Verify data is present in the Table Editor
+**Important:** This application uses an **external Supabase** (PostgreSQL) database. Make sure you have:
+- A Supabase account and project created at [supabase.com](https://supabase.com)
+- Your Supabase instance accessible from external connections
+- Project credentials configured in your `.env` file
+
+**Database Setup Steps:**
+
+1. **Log into your Supabase project dashboard**
+2. **Navigate to SQL Editor**
+3. **Run the SQL script** to create the `audit_types` table (see below)
+4. **Import your audit data** into the table
+5. **Verify data** is present in the Table Editor
+
+**Note:** Since Supabase is an external service (not managed by Emergent), ensure your Supabase project allows connections from your deployment environment.
 
 ### 3. Install Dependencies
 
